@@ -83,7 +83,7 @@ print('-' * 30)
 
 for letter,i  in enumerate([a_distance, i_distance, u_distance]):
     plt.figure()
-    plt.hist(i, bins=7, density=False)
+    plt.hist(i, bins=5, density=False)
     if (letter==0):
         plt.title('distances histogram for a vowel')
     if (letter==1):
