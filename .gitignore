@@ -1,6 +1,11 @@
 # personal
 private/
 .env
+
+# Python
 Codigo/.spyproject
 **.pycache/**
 **__pycache__/**
+
+# tests
+audio_predict/
