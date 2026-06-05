@@ -57,7 +57,6 @@ def cepstogram(dct):
 
 def process_audio(audio_file):
     fs, data = wav.read(audio_file)
-    # print(data.shape)
 
 # Parameters
     duration = len(data)/fs
@@ -65,9 +64,6 @@ def process_audio(audio_file):
     hop_ms = 10e-3
     NFFT = int(2 * fs * tv)
     sample_hop = int(fs * hop_ms)
-
-    # print(f'f_s = {fs}')
-    # print(f'd = {duration}')
 
 # PREPROCESSING
         # Normalization
@@ -92,13 +88,8 @@ def process_audio(audio_file):
 
 # DCT
     dct = fftpack.dct(mel, type=2, axis=1, norm='ortho')
-    dct = dct[:, :mel.shape[1]//2 + 1]
 
-    # print(dct.shape)
-
-# CHARACTERISTICS
+        # CHARACTERISTICS
     char = np.mean(dct, axis=0)
-    
-    # print(f'char.shape = {char.shape}')
-    # print(char)
+    char = np.concatenate([char[0:16], char[17:21], char[22:]])
     return char

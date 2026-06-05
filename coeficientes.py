@@ -1,12 +1,11 @@
-
 import scipy.io.wavfile as wav
 import numpy as np
 import matplotlib.pyplot as plt
 import librosa
 import scipy.signal as signal
 import scipy.fftpack as fftpack
+from scipy.stats import shapiro, f_oneway, kruskal
 import Codigo.functions.general as gen
-
 
 
 def get_audio_fragment(audio_og, fs, t0, t1):
@@ -52,22 +51,19 @@ def cepstogram(dct):
     plt.ylabel('MFCCs')
 
 
+def stat_test():
+    pass
 
-def process_audio(audio_file):
+
+def get_dct(audio_file):
     fs, data = wav.read(audio_file)
-    # print(data.shape)
 
 # Parameters
-   
     duration = len(data)/fs
-   #hacer la correlacion para encontrar el cuasiperiodo
-    tv = 24e-3
-    hop_ms = 9e-3
-    NFFT = int(1 * fs * tv)
+    tv = 25e-3
+    hop_ms = 10e-3
+    NFFT = int(2 * fs * tv)
     sample_hop = int(fs * hop_ms)
-
-    # print(f'f_s = {fs}')
-    # print(f'd = {duration}')
 
 # PREPROCESSING
         # Normalization
@@ -75,60 +71,84 @@ def process_audio(audio_file):
     data = data/mag
 
         # Truncation
-    t_frag, audio_fragment = get_audio_fragment(data, fs, -1.6, 2.9)
+    t_frag, audio_fragment = get_audio_fragment(data, fs, 0.6, 2.9)
 
 # WINDOWING
-    windows =windowing(audio_fragment, fs, tv)
+    windows = windowing(audio_fragment, fs, tv)
 
 # DFT
     fft = np.fft.fft(windows)
-    fft = 9 * np.log10(np.abs(fft)**2 + 1e-15)
+    fft = 10 * np.log10(np.abs(fft)**2 + 1e-15)
 
 # MEL BANKS
-    #por que 24?
     n_mels = 24
-    mel_fb = librosa.filters.mel(sr=fs, n_fft=NFFT, n_mels=n_mels)[:, :fft.shape[0]]
+    mel_fb = librosa.filters.mel(sr=fs, n_fft=NFFT, n_mels=n_mels)[:, :fft.shape[1]]
 
     mel = np.matmul(fft, mel_fb.T)
 
 # DCT
-    
-    dct = fftpack.dct(mel, type=1, axis=1, norm='ortho')
-    n=dct.shape[0]
-    
-    coef_list=[]
-
-    R = np.zeros((n, n))
-    for i in range(n):
-        for j in range(n):
-        # Correctly access the individual correlated variables from all_expo_vars
-           r, _ = pearsonr(dct[i],dct[j])
-           
-           R[i, j] = r
-
-    for i in range(n):
-        for j in range (i+1, n):
-            if (np.abs(R[i,j])<0.5):
-                coef_list.append(i,j)
-    
-
-    # print(dct.shape)
+    dct = fftpack.dct(mel, type=2, axis=1, norm='ortho')
 
 # CHARACTERISTICS
+    char = np.mean(dct, axis=0)
+    return char
+
+
+def firstgroup(letra):
+    vowel = []
+    for genero in ['Hombre', 'Mujer']:
+        for i in range(1, 10 + 1):
+            audio_file = f'Audios/{genero}/{letra}/{letra}_{i}.wav'
+            vowel.append(get_dct(audio_file))
+    vowel = np.asarray(vowel)
+    return vowel
     
+
+def test_coeff(vowel1, vowel2, vowel3, alpha=0.05):
+    test = shapiro(vowel1)
+    p1 = test.pvalue
+    test = shapiro(vowel2)
+    p2 = test.pvalue
+    test = shapiro(vowel3)
+    p3 = test.pvalue
+
+    pval = 0
+    if (p1 > alpha and p2 > alpha and p3 > alpha):
+        print("All follow a normal distribution")
+        test = f_oneway(vowel1, vowel2, vowel3)
+        pval = test.pvalue
+        if(pval > alpha):
+            print("All mean are the same")
+        else:
+            print("Means are different")
+    else:
+        print("At least one does not follow a normal distribution")
+        test = kruskal(vowel1, vowel2, vowel3)
+        pval = test.pvalue
+        if (pval > alpha):
+            print("Distributions are similars")
+        else:
+            print("Distributions are different")
+    return pval < alpha
     
-    # print(f'char.shape = {char.shape}')
-    # print(char)
-    return coef_list
 
-coefs=[]
+chars = []
+for vocal in ['a','i','u']:
+    chars.append(firstgroup(vocal))
+chars = np.asarray(chars) # 3x20x24
 
-for genero in ['Hombre','Mujer']:
-    for vocal in ['a','i','u']:
-        for num in [4,5,14]:
-            audio_file = f'Audios/{genero}/{vocal}/{vocal}_{num}.wav'
-            coefs.append(process_audio(audio_file))
-for i in coefs:
-    print(i)
+print(f'chars.shape: {chars.shape}')
 
+charsa = chars[0].T # 24x20
+charsi = chars[1].T # 24x20
+charsu = chars[2].T # 24x20
 
+coeffs_pos = []
+for i in range(charsa.shape[0]):
+    vowel1 = charsa[i]
+    vowel2 = charsi[i]
+    vowel3 = charsu[i]
+    if (test_coeff(vowel1, vowel2, vowel3)):
+        coeffs_pos.append(i)
+
+print(coeffs_pos)

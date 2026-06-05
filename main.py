@@ -5,10 +5,6 @@ import matplotlib.pyplot as plt
 from scipy.stats import shapiro, ttest_ind, mannwhitneyu
 
 
-
-
-
-
 def firstgroup(letra):
     vowel = []
     for genero in ['Hombre', 'Mujer']:
@@ -18,6 +14,7 @@ def firstgroup(letra):
     vowel = np.asarray(vowel)
     vowel = np.mean(vowel, axis=0)
     return vowel
+
 
 def cosine_distance(vowel_mean, letra):
     distance = []
@@ -52,7 +49,6 @@ def distance_tests(vowel1, vowel2, alpha=0.05):
             print("Distributions are different")
 
 
-
 a_mean = firstgroup('a')
 i_mean = firstgroup('i')
 u_mean = firstgroup('u')
@@ -66,7 +62,6 @@ for i in a_distance:
 print('-' * 30)
 for i in i_distance:
     print(i)
-
 print('-' * 30)
 for i in u_distance:
     print(i)
@@ -77,9 +72,6 @@ print(f'a:{np.mean(a_distance)}')
 print(f'i:{np.mean(i_distance)}')
 print(f'u:{np.mean(u_distance)}')
 print('-' * 30)
-
-
-
 
 for letter,i  in enumerate([a_distance, i_distance, u_distance]):
     plt.figure()
@@ -99,7 +91,6 @@ print('-' * 30)
 print("A vs U :")
 distance_tests(a_distance,u_distance)
 print('-' * 30 )
-
 
 print("I vs U:")
 distance_tests(i_distance,u_distance)
