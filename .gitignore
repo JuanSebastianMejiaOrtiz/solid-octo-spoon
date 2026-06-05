@@ -4,8 +4,9 @@ private/
 
 # Python
 Codigo/.spyproject
-**.pycache/**
-**__pycache__/**
+**/.pycache/**
+**/__pycache__/**
+**/*.swp
 
 # tests
 audio_predict/

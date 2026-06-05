@@ -1,0 +1,26 @@
+En general todas las representaciones parecen estar hechas para que la discriminacion de vocales
+sea efectiva, porque las distancias coseno entre el vector promedio de cada vocal con su respectiva
+vocal son muy pequenas y se evidencian que son menores a las distancias entre el vector promedio de
+cada vocal con las otras 2 vocales.
+A continuacion se presentan las representaciones mas compactas y mas dispersas entre pares:
+
+
+A-A: representacion compacta, la mayor distancia es un poco mas de 0.006
+
+A-I:  representacion compacta, la menor distancia es un poco mas de 0.008
+
+A-U:  representacion compacta, la menor distancia es un poco menos de 0.008
+
+I-I:  representacion compacta, la mayor distancia es un poco mas de 0.008
+
+I-A:  representacion compacta, la menor distancia es un poco menos de 0.01
+
+I-U:  representacion mas dispersa, la menor distancia es de aproximadamente 0.004 pero la mayor 
+    distancia de i-i es de un poco mas de 0.008 por lo que aca puede haber confusion para el programa
+    al tratar de diferenciar entre una i, y una u
+
+U-U:  representacion compacta, la mayor distancia es un poco mas 0.005
+
+U-A:  representacion compacta, la menor distancia es un poco mas de 0.01
+
+U-I:  representacion compacta, la menor distancia es un poco mas de 0.01

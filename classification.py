@@ -8,7 +8,7 @@ u_mean = gen.firstgroup('u')
 is_ogg = True
 # audio = input('Audio: ')
 # is_ogg = Bool(input('Ogg: '))
-audio = 'predict9'
+audio = 'predict'
 audio_wav = ''
 
 if is_ogg:

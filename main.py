@@ -133,12 +133,19 @@ for letter in ['a', 'i', 'u']:
     predicts_vowel = gen.lastgroup(letter, a_mean, i_mean, u_mean)
     predicts.extend(predicts_vowel)
 
-print(predicts)
+print("Audios reales:")
 print(audio_real)
+
+print("Predicts: ")
+print(predicts)
+
 
 labels = ['A','I','U']
 
 cm = confusion_matrix(audio_real, predicts, labels=labels)
+print()
+
+print("Matriz de confusion: ")
 
 print(cm)
 
