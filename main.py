@@ -2,61 +2,53 @@ import Codigo.functions.general as gen
 import numpy as np
 import scipy.spatial as spp
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 from scipy.stats import shapiro, ttest_ind, mannwhitneyu
+from sklearn.metrics import confusion_matrix, accuracy_score
 
 
-def firstgroup(letra):
-    vowel = []
-    for genero in ['Hombre', 'Mujer']:
-        for i in range(1, 10 + 1):
-            audio_file = f'Audios/{genero}/{letra}/{letra}_{i}.wav'
-            vowel.append(gen.process_audio(audio_file))
-    vowel = np.asarray(vowel)
-    vowel = np.mean(vowel, axis=0)
-    return vowel
+# Comprobacion edades apareadas
+edadH = [21, 21, 19, 21, 25, 52, 45, 22, 25, 25, 40, 25, 40, 26, 23, 25, 50, 30, 83]
+print("Hombres")
+print(len(edadH))
+print(sum(edadH)/len(edadH))
+print('-' * 30)
 
+edadM = [54, 78, 18, 17, 13, 14, 45, 52, 20, 20, 24, 52, 24, 45, 25, 20, 50]
+print("Mujeres")
+print(len(edadM))
+print(sum(edadM)/len(edadM))
+print('-' * 30)
 
-def cosine_distance(vowel_mean, letra):
-    distance = []
-    for genero in ['Hombre', 'Mujer']:
-        for i in range(11, 15 + 1):        
-            audio_file = f'Audios/{genero}/{letra}/{letra}_{i}.wav'
-            vowel_rep=gen.process_audio(audio_file)
-            distance.append(spp.distance.cosine(vowel_rep,vowel_mean))
-    return distance
+df_H = pd.DataFrame({'edad': edadH, 'sexo': 'hombre'})
+df_M = pd.DataFrame({'edad': edadM, 'sexo': 'mujer'})
 
+df_combined = pd.concat([df_H, df_M])
 
-def distance_tests(vowel1, vowel2, alpha=0.05):
-    test=shapiro(vowel1)
-    p1=test.pvalue
-    test=shapiro(vowel2)
-    p2=test.pvalue
-    if (p1>alpha and p2>alpha):
-        print("both follow a normal distribution")
-        test=ttest_ind(vowel1,vowel2)
-        pval=test.pvalue
-        if(pval>alpha):
-            print("Both mean are the same")
-        else:
-            print("Means are different")
-    else:
-        print("At least one does not follow a normal distribution")
-        test=mannwhitneyu(vowel1,vowel2)
-        pval=test.pvalue
-        if (pval>alpha):
-            print("Distributions are similars")
-        else:
-            print("Distributions are different")
+plt.figure(figsize = (10,6))
+sns.boxplot(data = df_combined, x="edad", y='sexo')
+plt.title('Comparación Edades Personas')
+plt.xlabel('Edad')
+plt.ylabel('Sexo')
+plt.grid(True, linestyle='--', alpha=0.3)
+plt.tight_layout()
 
+gen.stat_test(edadH, edadM)
+print('-' * 30)
+print('\n')
 
-a_mean = firstgroup('a')
-i_mean = firstgroup('i')
-u_mean = firstgroup('u')
+# Grupos de entrenamiento
+a_mean = gen.firstgroup('a')
+i_mean = gen.firstgroup('i')
+u_mean = gen.firstgroup('u')
 
-a_distance = cosine_distance(a_mean, 'a')
-i_distance = cosine_distance(i_mean, 'i')
-u_distance = cosine_distance(u_mean, 'u')
+# Entre mismas vocales
+a_distance = gen.cosine_distance(a_mean, 'a')
+i_distance = gen.cosine_distance(i_mean, 'i')
+u_distance = gen.cosine_distance(u_mean, 'u')
 
+'''
 for i in a_distance:
     print(i)
 print('-' * 30)
@@ -66,32 +58,93 @@ print('-' * 30)
 for i in u_distance:
     print(i)
 print('-' * 30)
+'''
 
-print("distance mean:")
+print("Distance mean:")
 print(f'a:{np.mean(a_distance)}')
 print(f'i:{np.mean(i_distance)}')
 print(f'u:{np.mean(u_distance)}')
 print('-' * 30)
 
-for letter,i  in enumerate([a_distance, i_distance, u_distance]):
+bins = 10
+for index, distance  in enumerate([a_distance, i_distance, u_distance]):
     plt.figure()
-    plt.hist(i, bins=7, density=False)
-    if (letter==0):
-        plt.title('distances histogram for a vowel')
-    if (letter==1):
-        plt.title('distances histogram for i vowel')
-    if (letter==2):
-        plt.title('distances histogram for u vowel')
-plt.show()
+    plt.hist(distance, bins=bins, density=False)
+    plt.title(f'Distribution of distances for vowel {['a', 'i', 'u'][index]}')
 
 print("A vs I:")
-distance_tests(a_distance,i_distance)
+gen.stat_test(a_distance, i_distance)
 print('-' * 30)
 
 print("A vs U :")
-distance_tests(a_distance,u_distance)
+gen.stat_test(a_distance, u_distance)
 print('-' * 30 )
 
 print("I vs U:")
-distance_tests(i_distance,u_distance)
+gen.stat_test(i_distance, u_distance)
 print('-' * 30)
+
+print('\n')
+
+# Entre diferentes vocales
+ai_distance = gen.cosine_distance(a_mean, 'i')
+au_distance = gen.cosine_distance(a_mean, 'u')
+
+ia_distance = gen.cosine_distance(i_mean, 'a')
+iu_distance = gen.cosine_distance(i_mean, 'u')
+
+ua_distance = gen.cosine_distance(u_mean, 'a')
+ui_distance = gen.cosine_distance(u_mean, 'i')
+
+print("Distance mean:")
+print(f'a:{np.mean(a_distance)}')
+print(f'i:{np.mean(i_distance)}')
+print(f'u:{np.mean(u_distance)}')
+print('-' * 30)
+
+for index, distance in enumerate([ai_distance, au_distance, ia_distance, iu_distance, ua_distance, ui_distance]):
+    plt.figure()
+    plt.hist(distance, bins=bins, density=False)
+    plt.title(f'distances histogram for {['ai', 'au', 'ia', 'iu', 'ua', 'ui'][index]} pair of vowels')
+
+print("A vs I:")
+gen.stat_test(ai_distance, ia_distance)
+print('-' * 30)
+
+print("A vs U :")
+gen.stat_test(au_distance, ua_distance)
+print('-' * 30 )
+
+print("I vs U:")
+gen.stat_test(iu_distance, ui_distance)
+print('-' * 30)
+
+print('\n')
+
+# Clasificacion ultimo grupo de audios
+audio_real = [
+        'A', 'A', 'A', 'A', 'A', 'A',
+        'I', 'I', 'I', 'I', 'I', 'I',
+        'U', 'U', 'U', 'U', 'U', 'U'
+]
+
+predicts = []
+for letter in ['a', 'i', 'u']:
+    predicts_vowel = gen.lastgroup(letter, a_mean, i_mean, u_mean)
+    predicts.extend(predicts_vowel)
+
+print(predicts)
+print(audio_real)
+
+labels = ['A','I','U']
+
+cm = confusion_matrix(audio_real, predicts, labels=labels)
+
+print(cm)
+
+accuracy = accuracy_score(audio_real, predicts)
+
+print(f"Aciertos: {accuracy*100:.2f}%")
+print(f"Error: {(1-accuracy)*100:.2f}%")
+
+plt.show()

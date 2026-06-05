@@ -55,7 +55,7 @@ def stat_test():
     pass
 
 
-def get_dct(audio_file):
+def process_audio_full(audio_file):
     fs, data = wav.read(audio_file)
 
 # Parameters
@@ -78,19 +78,21 @@ def get_dct(audio_file):
 
 # DFT
     fft = np.fft.fft(windows)
-    fft = 10 * np.log10(np.abs(fft)**2 + 1e-15)
+    # fft = 10 * np.log10(np.abs(fft)**2 + 1e-15)
+    power = np.abs(fft)**2
 
 # MEL BANKS
     n_mels = 24
     mel_fb = librosa.filters.mel(sr=fs, n_fft=NFFT, n_mels=n_mels)[:, :fft.shape[1]]
 
-    mel = np.matmul(fft, mel_fb.T)
+    mel = power @ mel_fb.T
+    mel = 10 * np.log10(mel + 1e-15)
 
 # DCT
     dct = fftpack.dct(mel, type=2, axis=1, norm='ortho')
 
 # CHARACTERISTICS
-    char = np.mean(dct, axis=0)
+    char = np.concatenate([np.mean(dct, axis=0), np.std(dct, axis=0)])
     return char
 
 
@@ -99,7 +101,7 @@ def firstgroup(letra):
     for genero in ['Hombre', 'Mujer']:
         for i in range(1, 10 + 1):
             audio_file = f'Audios/{genero}/{letra}/{letra}_{i}.wav'
-            vowel.append(get_dct(audio_file))
+            vowel.append(process_audio_full(audio_file))
     vowel = np.asarray(vowel)
     return vowel
     
@@ -115,7 +117,7 @@ def test_coeff(vowel1, vowel2, vowel3, alpha=0.05):
     pval = 0
     if (p1 > alpha and p2 > alpha and p3 > alpha):
         print("All follow a normal distribution")
-        test = f_oneway(vowel1, vowel2, vowel3)
+        test = f_oneway(vowel1, vowel2, vowel3) # ANOVA
         pval = test.pvalue
         if(pval > alpha):
             print("All mean are the same")
@@ -123,7 +125,7 @@ def test_coeff(vowel1, vowel2, vowel3, alpha=0.05):
             print("Means are different")
     else:
         print("At least one does not follow a normal distribution")
-        test = kruskal(vowel1, vowel2, vowel3)
+        test = kruskal(vowel1, vowel2, vowel3) # Kruskal
         pval = test.pvalue
         if (pval > alpha):
             print("Distributions are similars")
