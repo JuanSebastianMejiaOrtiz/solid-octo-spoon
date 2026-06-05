@@ -57,6 +57,7 @@ Distributions are different
 Audios reales:
 --------------
 ['A', 'A', 'A', 'A', 'A', 'A', 'I', 'I', 'I', 'I', 'I', 'I', 'U', 'U', 'U', 'U', 'U', 'U']
+
 Predicts:
 -----------
 ['A', 'A', 'U', 'A', 'A', 'A', 'I', 'I', 'U', 'I', 'I', 'I', 'U', 'U', 'U', 'U', 'U', 'U']
